@@ -1,0 +1,71 @@
+What I did is basically a slight modification of the Q-learning algorithm
+as described in class. Did Q-learning because state space for value iteration 
+is too large. There are 5^81 possible states. Also, the state space for s' having 
+taken action a on state s is also very large, because have to fill in all the new
+positions, cascade, account for combos, etc. Instead, I did Q-learning, where instead
+of knowing the T(s,a,s'), at each turn, I did SARS' (SARSA sampling) and updated 
+Q_opt based on the results. SARSA sampling and Q_opt updating are explained below.
+Note: constants like EPSILON, STEP_SIZE, DISCOUNT, NSARSA chosen somewhat arbitrarily
+so has not been optimized yet.
+
+Performance: I am still running samples, I will give you an average score later 
+			 in the day.
+I have included a sample run with random and numpy.random seeded to 1 in 
+sample.txt
+
+Modeling:
+
+States: tuple: (game board, #turns left)
+s_start: (randomly generated initial game board, NTURNS)
+Actions(s): set of valid switches between adjacent positions (valid meaning
+results in a row/col of at least 3 of the same color)
+T(s,a,s'): unknown (it is known but in our algorithm considered unknown because state space is
+very large -> too many possible results of an action from a state to make ValueIteration
+feasible).
+Reward(s,a,s') -> turnScore as returned by cascade function (same as turnScore defined in 
+proposal.pdf)
+isEndState(s): return s[1] == 0 (i.e. number of turns left is 0)
+
+I have set NTURNS to 50.
+Other constants:
+EPSILON = 0.2
+STEP_SIZE (eta) = 0.2	
+DISCOUNT (gamma) = 0.5  
+NSARSA = 25		# of SARSA sequences to generate for each sample
+
+We will use V_opt(s) to refer to max(Q_opt(s,a) for all a in Actions(s))
+Use pi_opt(s) to reger to argmax_{a in Actions(s)} (Q_opt(s,a))
+
+Algorithm pseudocode:
+	score = 0
+	For each turn:
+		currState = (grid, # turns left)
+
+		# generate SARSA sequences
+		generate NSARSA sequences of (S,A,R,S') from currState to endState 
+		with epsilon-greedy policy (Lecture 10/19, slide 56):
+			#e.g. (currState, A, R, S'), (S', A, R, S''), ..., (S, A, R, endState) is one possible
+			# sequence, generate NSARSA of these sequences 
+			initialize list: sarsa = []
+			prevState = currState
+			while (not isEndState(prevState)):
+				if prevState has been already visited in generating SARSA:
+					if (random.random() < EPSILON):
+						with probability EPSILON choose random action from Actions(prevState)
+					else:
+						with probablity 1-EPSILON choose current pi_opt = (argmax_{a in Actions(s)} (Q_opt(s,a)))
+				else:
+					choose random action from Actions(prevState)
+				newState, reward = makeSwitch(prevState, action)
+				sarsa.append((prevState, action, reward, newState))
+				prevState = newState
+
+		#update Q_opt(S,A) for each (S,A,R,S') generated above (same as Lecture 10/19 slide 44)
+		for each generated (S,A,R,S'):			
+			 V_opt(S') = max(Q_opt(S',a) for all a in Actions(S'))
+			 Q_opt = (1-STEP_SIZE)*Q_opt(S,A) + STEP_SIZE*(R + DISCOUNT*V_opt(S'))
+
+		#choose policy to take
+		pi_opt = argmax_{a in Actions(currState)} (Q_opt(currState,a))
+		grid, turnScore = makeSwitch(currState, pi_opt)
+		score += turnScore
