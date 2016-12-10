@@ -12,17 +12,16 @@ import random
 import numpy as np
 import collections
 
-NSARSA = 25       # number of SARS' sequences to generate at each turn
-NUMSAMPLES = 100	# number of total trials to run
-NTURNS = 10		# number of turns in the game
-NROWS = 9
+NSARSA = 100       # number of SARS' sequences to generate at each turn
+NUMSAMPLES = 10000	# number of total trials to run
+NTURNS = 5		# number of turns in the game
+NROWS = 9		
 NCOLS = 9
 NCOLORS = 5
 DISCOUNT = 0.5		# discount in computing Q_opt
 STEP_SIZE = 0.0001		# eta in computing Q_opt
-EPSILON = 0.5		# epsilon in epsilon-greedy (used in generating SARS')
+EPSILON = 0.2		# epsilon in epsilon-greedy (used in generating SARS')
 # SCORE(X) = 10(X^2 - X)
-updated = set()
 weights = np.zeros(4, dtype = float)
 
 def dotProd(a,b):
@@ -111,7 +110,7 @@ def cascade(grid):
 		coords = cascadeCoords(grid)
 		cascadeSize = len(coords)
 		if cascadeSize < 3:
-			break
+			break		
 		addScore = 10*(cascadeSize**2-cascadeSize)*combo
 		turnScore += addScore
 		combo += 1
@@ -130,11 +129,11 @@ def cascade(grid):
 		dropCols(grid, colsToRowsMap)
 		# if True:
 		if False:
-			print coords
+			print coords			
 			print 'deleted', cascadeSize, 'positions'
 			print grid
 			print addScore
-	return grid, turnScore
+	return grid, turnScore			
 
 def testSwitch(state, action):
 	grid = np.array(state[0])
@@ -151,7 +150,7 @@ def maxCount(state):
 		for j in xrange(NCOLS):
 			rowCount[(i, grid[i,j])] += 1
 			colCount[(j, grid[i,j])] += 1
-	max_row = rowCount.most_common(1)[0][1]
+	max_row = rowCount.most_common(1)[0][1] 
 	max_col = colCount.most_common(1)[0][1]
 	return max_row, max_col
 
@@ -159,7 +158,7 @@ def maxCount(state):
 def initialize(grid):
 	for i in xrange(NROWS):
 		for j in xrange(NCOLS):
-			grid[i, j] = random.randint(1, NCOLORS)
+			grid[i, j] = random.randint(1, NCOLORS)	
 	print grid
 	grid, turnScore = cascade(grid)
 	return grid
@@ -181,7 +180,7 @@ def isValidMove(grid,coord1,coord2):
 			colorRowsSet1, colorColsSet1 = exploreCoord(gridCopy, coord1[0], coord1[1])
 			if len(colorRowsSet1) >= 3 or len(colorColsSet1) >= 3:
 				return True
-			colorRowsSet2, colorColsSet2 = exploreCoord(gridCopy, coord2[0], coord2[1])
+			colorRowsSet2, colorColsSet2 = exploreCoord(gridCopy, coord2[0], coord2[1])			
 			if len(colorRowsSet2) >= 3 or len(colorColsSet2) >= 3:
 				return True
 	return False
@@ -213,9 +212,10 @@ def getFeatureVec(state, action):
 	maxDelete = testSwitch(state, action)
 	maxRowCount, maxColCount = maxCount(state)
 	phi = [nValidMoves, maxDelete, maxRowCount, maxColCount]
-	return np.array(phi)
+	return np.array(phi) 
 
 def getQopt(state, action):
+	if isEndState(state): return 0.
 	return dotProd(getFeatureVec(state, action), weights)
 
 def generateSARSA(currState):
@@ -223,13 +223,10 @@ def generateSARSA(currState):
 	prevState = currState
 	while (not isEndState(prevState)):
 		action = None
-		if prevState in updated:
-			if (random.random() < EPSILON):
-				action = random.choice(actions(prevState))
-			else:
-				Vopt, action = max((getQopt(prevState, action), action) for action in actions(prevState))
-		else:
+		if (random.random() < EPSILON):
 			action = random.choice(actions(prevState))
+		else:
+			Vopt, action = max((getQopt(prevState, action), action) for action in actions(prevState))
 		grid, reward = makeSwitch(prevState, action)
 		newState = (arrToTuple(grid), prevState[1]-1)
 		sarsa.append((prevState, action, reward, newState))
@@ -246,12 +243,11 @@ def updateWeights(state, action, reward, newState):
 	global weights
 	Vopt, pi_opt = max((getQopt(newState, action), action) for action in actions(newState))
 	weights = weights - STEP_SIZE * (getQopt(state, action) - (reward + DISCOUNT*Vopt)) * getFeatureVec(state, action)
-	updated.add(state)
 	return
 
 def aiPlay(grid, sample):
 	score = 0
-	for turn in xrange(NTURNS):
+	for turn in xrange(NTURNS):			
 		while True:
 			if validMoveExists(grid):
 				break
@@ -259,13 +255,13 @@ def aiPlay(grid, sample):
 			np.random.shuffle(grid)
 			grid = np.resize((NROWS, NCOLS))
 		turnsLeft = NTURNS - turn
-		print ''
+		print ''	
 		print 'Turns left:', NTURNS - turn
 		print 'SCORE', score
-		print grid
+		print grid	
 		print 'generating SARSA...'
 		currState = (arrToTuple(grid), turnsLeft)
-		sarsa = [generateSARSA(currState) for i in xrange(NSARSA)]
+		sarsa = [generateSARSA(currState) for i in xrange(NSARSA)]	
 		print 'updating weights'
 		for i in xrange(NSARSA):
 			for (state, action, reward, newState) in sarsa[i]:
@@ -277,19 +273,17 @@ def aiPlay(grid, sample):
 		print 'switched', action[0], 'and', action[1]
 		grid, turnScore = makeSwitch(currState, action)
 		score += turnScore
-	print ''
+	print ''		
 	print 'Turns left:', 0
-	print grid
+	print grid	
 	print sample, 'FINAL SCORE', score
 	return score
 
 def main():
-	global updated
 	random.seed()
 	np.random.seed()
 	scoreSum = 0
 	for i in xrange(NUMSAMPLES):
-		updated = set()
 		grid = np.zeros((NROWS, NCOLS), dtype = int)
 		grid = initialize(grid)
 		score = aiPlay(grid, i+1)
