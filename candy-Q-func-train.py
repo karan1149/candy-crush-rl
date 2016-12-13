@@ -10,12 +10,6 @@ Features:
 6.     + median utility from NSARS episodes with limited DEPTH
 7-15.  + max count of any 1 color in rows 1-9
 16-24. + max count of any 1 color in cols 1-9
-
-# 1. number of valid pairs in state
-# 2. number in a row produced by switched: testSwitch
-# 3. max count of a number in a row: maxCount[0]
-# 4. Max count of a number in a col: maxCount[1]
-# 5. average score from running cascadeGrid NSCORES times from input state and action 
 '''
 
 import random
@@ -310,7 +304,7 @@ def aiPlay(grid, sample):
 			scaledWeights = weights
 		else:
 			scaledWeights = weights/min(weights[i] for i in xrange(NFEATURES) if weights[i] > 0)
-		print np.round(scaledWeights, 3)
+		print scaledWeights
 		print 'weight diff:', scaledWeights - prevWeights
 		prevWeights = scaledWeights
 	print ''		

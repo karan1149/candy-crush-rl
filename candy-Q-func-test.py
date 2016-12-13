@@ -10,12 +10,6 @@ Features:
 6.     + median utility from NSARS episodes with limited DEPTH
 7-15.  + max count of any 1 color in rows 1-9
 16-24. + max count of any 1 color in cols 1-9
-
-# 1. number of valid pairs in state
-# 2. number in a row produced by switched: testSwitch
-# 3. max count of a number in a row: maxCount[0]
-# 4. Max count of a number in a col: maxCount[1]
-# 5. average score from running cascadeGrid NSCORES times from input state and action 
 '''
 
 import random
@@ -33,9 +27,32 @@ NCOLS = 9
 NCOLORS = 5
 DISCOUNT = 0.5		# discount in computing Q_opt
 # STEP_SIZE = 0.00000000001		# eta in computing Q_opt
-EPSILON = 0.5		# epsilon in epsilon-greedy (used in generating SARS')
+# EPSILON = 0.5		# epsilon in epsilon-greedy (used in generating SARS')
 # SCORE(X) = 10(X^2 - X)
-weights = np.array([15., 15., 1., 60., 10., 8000., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10.], dtype = float)
+weights = np.array([12.513281, 
+	13.513281, 
+	1., 
+	47.4629136, 
+	7.8387159, 
+	6203.50702, 
+	7.74294748, 
+	7.66107148, 
+	7.70834051, 
+	7.84525787, 
+	7.66051262, 
+	7.70452242, 
+	7.70579486, 
+	7.81131253, 
+	7.66562495, 
+	7.78574530, 
+	7.69394309, 
+	7.61580936, 
+	7.78276334, 
+	7.67177241, 
+	7.74759334, 
+	7.59703928, 
+	7.69851335, 
+	7.58144528], dtype = float)
 
 def dotProd(a,b):
 	return sum(a[i]*b[i] for i in xrange(len(a)))
