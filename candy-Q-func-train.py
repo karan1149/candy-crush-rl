@@ -293,7 +293,7 @@ def aiPlay(grid, sample):
 		print 'choosing action...'
 		action = None
 		if (random.random() < EPSILON):
-			action = random.choice(actions(state))
+			action = random.choice(actions(currState))
 		else:
 			Vopt, pi_opt = max((getQopt(currState, action), action) for action in actions(currState))
 			action = pi_opt
