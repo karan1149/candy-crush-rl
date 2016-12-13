@@ -32,7 +32,7 @@ NROWS = 9
 NCOLS = 9
 NCOLORS = 5
 DISCOUNT = 0.5		# discount in computing Q_opt
-STEP_SIZE = 0.0001		# eta in computing Q_opt
+STEP_SIZE = 0.00000000001		# eta in computing Q_opt
 EPSILON = 0.5		# epsilon in epsilon-greedy (used in generating SARS')
 # SCORE(X) = 10(X^2 - X)
 weights = np.zeros(NFEATURES, dtype = float)
@@ -293,8 +293,10 @@ def aiPlay(grid, sample):
 		print 'choosing action...'
 		action = None
 		if (random.random() < EPSILON):
+			print 'choosing random action...'
 			action = random.choice(actions(currState))
 		else:
+			print 'choosing optimal action...'
 			Vopt, pi_opt = max((getQopt(currState, action), action) for action in actions(currState))
 			action = pi_opt
 		print 'switched', action[0], 'and', action[1]
@@ -302,10 +304,15 @@ def aiPlay(grid, sample):
 		score += turnScore
 		newState = (arrToTuple(grid), turnsLeft-1)
 		print 'updating weights'
-		updateWeights(currState, action, turnScore, newState)
-		print 'new weights:', weights
-		print 'weight diff:', weights - prevWeights
-		prevWeights = weights
+		updateWeights(currState, action, turnScore, newState)		
+		print 'new weights (scaled):', 
+		if weights.all() == 0:
+			scaledWeights = weights
+		else:
+			scaledWeights = weights/min(weights[i] for i in xrange(NFEATURES) if weights[i] > 0)
+		print np.round(scaledWeights, 3)
+		print 'weight diff:', scaledWeights - prevWeights
+		prevWeights = scaledWeights
 	print ''		
 	print 'Turns left:', 0
 	print grid	
