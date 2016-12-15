@@ -264,7 +264,7 @@ def updateWeights(state, action, reward, newState):
     # for i in xrange(NFEATURES):
     # 	if weights[i] < 0:
     # 		weights[i] = 0.
-
+    print "residual:", net.predict([getFeatureVec(state, action)])[0] - (reward + DISCOUNT*Vopt);
     net.partial_fit([getFeatureVec(state, action)], [reward + DISCOUNT*Vopt]);
     return
 
