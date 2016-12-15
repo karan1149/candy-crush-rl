@@ -308,6 +308,9 @@ def aiPlay(grid, sample):
         updateWeights(currState, action, turnScore, newState)
         print 'new weights (scaled):',
         print net.coefs_, net.intercepts_;
+        # print net.n_outputs_ ;
+        # print net.n_layers_ ;
+        # print net.out_activation_ ;
         # if weights.all() == 0:
         #     scaledWeights = weights
         # else:
